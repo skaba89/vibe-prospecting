@@ -28,12 +28,16 @@ import {
 import { 
   AFRICAN_COUNTRIES, 
   AFRICAN_INDUSTRIES, 
-  AFRICAN_COMPANIES, 
   GOVERNMENT_CONTACTS,
-  AFRICAN_CONTACTS,
   AFRICAN_COMMUNITIES,
   GOVERNMENT_STRUCTURES
 } from '@/lib/african-data'
+import { 
+  AFRICAN_COMPANIES_EXTENDED,
+  AFRICAN_CONTACTS_EXTENDED,
+  AFRICAN_ORGANIZATIONS,
+  AFRICAN_STARTUPS
+} from '@/lib/african-companies'
 
 // Format number with commas
 const formatNumber = (num: number): string => {
@@ -221,22 +225,29 @@ export default function Home() {
     
     let results: any[] = []
     
+    // Combine all data sources
+    const allCompanies = [...AFRICAN_COMPANIES_EXTENDED, ...AFRICAN_STARTUPS]
+    const allContacts = AFRICAN_CONTACTS_EXTENDED
+    const allOrganizations = AFRICAN_ORGANIZATIONS
+    
     if (searchType === 'companies') {
-      results = AFRICAN_COMPANIES.filter(company => {
+      results = allCompanies.filter(company => {
         const matchCountry = !selectedCountry || company.country === selectedCountry
-        const matchIndustry = !selectedIndustry || company.industry.includes(selectedIndustry)
+        const matchIndustry = !selectedIndustry || company.industry?.includes(selectedIndustry)
         const matchSector = !selectedSector || company.sector?.includes(selectedSector)
         const matchQuery = !searchQuery || 
           company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          company.industry.toLowerCase().includes(searchQuery.toLowerCase())
+          company.industry?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          company.sector?.toLowerCase().includes(searchQuery.toLowerCase())
         return matchCountry && matchIndustry && matchSector && matchQuery
       })
       setSearchResults(results)
     } else if (searchType === 'government' || searchType === 'ministries') {
-      const govResults = GOVERNMENT_CONTACTS.filter(contact => {
+      // Combine government contacts and organizations
+      const govResults = [...GOVERNMENT_CONTACTS, ...allOrganizations].filter(contact => {
         const matchCountry = !selectedCountry || contact.country === selectedCountry
         const matchType = searchType === 'government' 
-          ? contact.type === 'government' 
+          ? (contact.type === 'government' || contact.type === 'organization')
           : searchType === 'ministries' 
             ? contact.type === 'ministry'
             : true
@@ -246,11 +257,12 @@ export default function Home() {
       })
       setSearchResults(govResults)
     } else if (searchType === 'contacts') {
-      const contactResults = AFRICAN_CONTACTS.filter(contact => {
+      const contactResults = allContacts.filter(contact => {
         const matchCountry = !selectedCountry || contact.country === selectedCountry
         const matchQuery = !searchQuery || 
           contact.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          contact.company.toLowerCase().includes(searchQuery.toLowerCase())
+          contact.company.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          contact.title?.toLowerCase().includes(searchQuery.toLowerCase())
         return matchCountry && matchQuery
       })
       setSearchContacts(contactResults.map(c => ({
@@ -1384,7 +1396,7 @@ Je suis..."
             </p>
           </div>
           
-          <div className="grid md:grid-cols-4 gap-4 mb-8">
+          <div className="grid md:grid-cols-5 gap-4 mb-8">
             <Card className="text-center">
               <CardContent className="pt-6">
                 <p className="text-4xl font-bold" style={{ color: '#668DF7' }}>30+</p>
@@ -1393,8 +1405,14 @@ Je suis..."
             </Card>
             <Card className="text-center">
               <CardContent className="pt-6">
-                <p className="text-4xl font-bold" style={{ color: '#668DF7' }}>15K+</p>
+                <p className="text-4xl font-bold" style={{ color: '#668DF7' }}>200+</p>
                 <p className="text-muted-foreground">Entreprises</p>
+              </CardContent>
+            </Card>
+            <Card className="text-center">
+              <CardContent className="pt-6">
+                <p className="text-4xl font-bold" style={{ color: '#668DF7' }}>50+</p>
+                <p className="text-muted-foreground">Startups Tech</p>
               </CardContent>
             </Card>
             <Card className="text-center">
