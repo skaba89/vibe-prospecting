@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String        @id @default(cuid())
+  email         String        @unique
+  name          String?
+  password      String?
+  company       String?
+  avatar        String?
+  credits       Int           @default(400)
+  plan          String        @default("free")
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  leads         Lead[]
+  chats         Chat[]
+  lists         LeadList[]
+  transactions  Transaction[]
+}
+
+model Lead {
+  id              String      @id @default(cuid())
+  userId          String
+  user            User        @relation(fields: [userId], references: [id])
+  companyName     String?
+  companyDomain   String?
+  companyIndustry String?
+  companySize     String?
+  companyRevenue  String?
+  companyLocation String?
+  companyWebsite  String?
+  companyLogo     String?
+  companyTech     String?     // JSON string of technologies
+  contactName     String?
+  contactTitle    String?
+  contactEmail    String?
+  contactPhone    String?
+  contactLinkedIn  String?
+  contactPhoto    String?
+  intent          String?     // Intent signals (JSON)
+  notes           String?
+  status          String      @default("new")
+  listId          String?
+  list            LeadList?   @relation(fields: [listId], references: [id])
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model LeadList {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  name        String
+  description String?
+  leads       Lead[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Chat {
+  id        String     @id @default(cuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id])
+  title     String?
+  messages  ChatMessage[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  chatId    String
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  role      String   // user or assistant
+  content   String
+  createdAt DateTime @default(now())
+}
+
+model Transaction {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  amount      Int
+  credits     Int
+  description String?
+  createdAt   DateTime @default(now())
+}
